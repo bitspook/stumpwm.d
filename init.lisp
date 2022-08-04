@@ -44,6 +44,8 @@
 (set-normal-gravity :bottom-right)
 (setf *message-window-gravity* :center
       *input-window-gravity* :center
+      *message-window-padding*   10
+      *message-window-y-padding* 10
       *group-format* "%t"
       *window-format* "%10c (%20t)")
 
@@ -53,6 +55,9 @@
 
 (when *initializing*
   (mode-line))
+
+(which-key-mode)
+
 ;; Keybindings
 
 ;; quick launch
@@ -70,6 +75,10 @@
 (define-key *top-map* (kbd "s-d") "exec rofi -show run")
 (define-key *top-map* (kbd "s-D") "exec rofi -show drun")
 
+;; familiar workspace/group navigation
+(loop :for i :from 1 :to 9
+      :do (define-key *top-map* (kbd (format nil "s-~a" i)) (format nil "gselect ~a" i)))
+
 (define-key *root-map* (kbd "'") "windowlist")
 (define-key *root-map* (kbd "C-k") "delete-window-and-frame")
 
@@ -78,6 +87,19 @@
 
 (load-file "./colors")
 (load-file "./modeline")
+
+(defvar *spook-end-session-keymap*
+  (let ((m (make-sparse-keymap)))
+    (define-key m (kbd "q") "end-session")
+    (define-key m (kbd "l") "logout")
+    (define-key m (kbd "s") "suspend-computer")
+    (define-key m (kbd "S") "shutdown-computer")
+    (define-key m (kbd "r") "loadrc")
+    (define-key m (kbd "R") "restart-hard")
+    (define-key m (kbd "C-r") "restart-computer")
+    m))
+(define-key *root-map* (kbd "q") '*spook-end-session-keymap*)
+
 
 ;; Modules from stumpwm-contrib
 ;; bring mouse cursor to current window
@@ -89,5 +111,29 @@
 (load-module "globalwindows")
 (define-key *root-map* (kbd "\"") "global-windowlist")
 
+;; fonts
+(ql:quickload :clx-truetype)
+(xft:cache-fonts)
+(load-module "ttf-fonts")
+
+(set-font `(,(make-instance 'xft:font :family "DejaVu Sans Mono for Powerline" :subfamily "Book" :size 8.5 :antialias t)))
+
 ;; get urgent windows
 (load-module "urgentwindows")
+
+
+(when *initializing*
+  (grename "read")
+  (gnewbg "edit")
+  (gnewbg "term")
+
+  (run-shell-command "firefox")
+  (run-shell-command "emacs")
+  (run-shell-command "kitty"))
+
+(clear-window-placement-rules)
+(define-frame-preference "read" (nil t t :class "Evince"))
+(define-frame-preference "read" (nil t t :class "firefox"))
+(define-frame-preference "read" (nil t t :class "Chromium"))
+(define-frame-preference "edit" (nil t t :class "Emacs"))
+(define-frame-preference "term" (nil t t :class "kitty"))
