@@ -1,14 +1,13 @@
 (in-package :stumpwm)
 
 (setf *mode-line-timeout* 2
-      *time-modeline-string* "%D %a %r"
+      *time-modeline-string* "%a,%d %b; %r"
       *mode-line-background-color* spook-nord1
       *mode-line-foreground-color* spook-nord5
       *mode-line-border-width* 0
       *mode-line-border-color* spook-nord1)
 
 (load-module "battery-portable")
-(load-module "wifi")
 (load-module "mem")
 
 (setf mem::*mem-modeline-fmt*        "%a%p"

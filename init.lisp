@@ -12,6 +12,14 @@
   (directory-namestring
    (truename (merge-pathnames (user-homedir-pathname) ".stumpwm.d"))))
 
+(defvar spook/term-cmd "kitty -o background_opacity=0.7")
+(defvar spook/fireword-bin "~/Documents/work/fireword/fireword")
+
+(defcommand fireword (pass len)
+    ((:password "Password: ")
+     (:password "Length: "))
+  (run-shell-command (format nil  "~a ~a ~a | xclip -sel clip" spook/fireword-bin pass len)))
+
 (defcommand firefox () ()
   "Run or raise Firefox."
   (run-or-raise "firefox" '(:class "Firefox") t nil))
@@ -62,7 +70,7 @@
 
 ;; quick launch
 (define-key *root-map* (kbd "f") "firefox")
-(define-key *root-map* (kbd "c") "exec kitty")
+(define-key *root-map* (kbd "c") (format nil "exec ~a" spook/term-cmd))
 (define-key *top-map* (kbd "C-s-l") "exec betterlockscreen -l --off 60")
 
 ;; window movement
@@ -113,15 +121,21 @@
 
 ;; fonts
 (ql:quickload :clx-truetype)
-(xft:cache-fonts)
 (load-module "ttf-fonts")
+;; NixOS specific fix to get the fonts
+(setq clx-truetype::*font-dirs* (split-string (getenv "FONT_DIRS") ":"))
+(xft:cache-fonts)
 
-(set-font `(,(make-instance 'xft:font :family "DejaVu Sans Mono for Powerline" :subfamily "Book" :size 8.5 :antialias t)))
+(set-font (list (make-instance 'xft:font
+                               :family "Noto Sans Mono"
+                               :subfamily "Regular"
+                               :size 11
+                               :antialias t)))
 
 ;; get urgent windows
 (load-module "urgentwindows")
 
-
+;; group/window placement
 (when *initializing*
   (grename "read")
   (gnewbg "edit")
@@ -129,7 +143,7 @@
 
   (run-shell-command "firefox")
   (run-shell-command "emacs")
-  (run-shell-command "kitty"))
+  (run-shell-command spook/term-cmd))
 
 (clear-window-placement-rules)
 (define-frame-preference "read" (nil t t :class "Evince"))
