@@ -11,8 +11,6 @@
 (load-module "mem")
 
 (setf mem::*mem-modeline-fmt*        "%a%p"
-      wifi:*wifi-modeline-fmt*       "%e %P"
-      wifi:*use-colors*              nil
       *hidden-window-color*          "^**"
       *mode-line-highlight-template* "^[^(:fg \"#1d1f21\")^(:bg \"#88c0d0\") ~A ^]")
 

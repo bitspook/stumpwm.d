@@ -57,12 +57,9 @@
       *group-format* "%t"
       *window-format* "%10c (%20t)")
 
-(setf *mouse-focus-policy* :sloppy)
+(setf *mouse-focus-policy* :click)
 
 (setf *top-level-error-action* :message)
-
-(when *initializing*
-  (mode-line))
 
 (which-key-mode)
 
@@ -79,9 +76,11 @@
 (define-key *top-map* (kbd "s-l") "move-focus right")
 (define-key *top-map* (kbd "s-h") "move-focus left")
 (define-key *top-map* (kbd "s-f") "fullscreen")
-(define-key *top-map* (kbd "s-P") "exec rofi-pass")
+(define-key *top-map* (kbd "s-p") "exec rofi-pass")
+(define-key *top-map* (kbd "s-P") "fireword")
 (define-key *top-map* (kbd "s-d") "exec rofi -show run")
 (define-key *top-map* (kbd "s-D") "exec rofi -show drun")
+(define-key *top-map* (kbd "s-s") "exec flameshot gui")
 
 ;; familiar workspace/group navigation
 (loop :for i :from 1 :to 9
@@ -134,6 +133,19 @@
 
 ;; get urgent windows
 (load-module "urgentwindows")
+
+;; Monitor setup
+(defun spook/hdmi-connected-p ()
+  (string-trim '(#\Space #\Newline) (run-shell-command "xrandr | grep \"HDMI\" | cut -d \" \" -f 1" t)))
+
+(when *initializing*
+  (when (not (spook/hdmi-connected-p))
+    (run-shell-command "xrandr --output eDP --mode 1920x1080"))
+
+  (when-let ((hdmi (spook/hdmi-connected-p)))
+    (run-shell-command (format nil "xrandr --output ~a --primary --auto --output eDP --off" hdmi) t))
+
+  (mode-line))
 
 ;; group/window placement
 (when *initializing*
