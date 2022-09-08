@@ -39,6 +39,13 @@
   (vsplit)
   (move-focus :down))
 
+(defcommand toggle-float-this () ()
+  "Toggle current window to float/unfloat."
+  (let ((window (current-window)))
+    (if (float-window-p window)
+        (unfloat-this)
+        (float-this))))
+
 ;; change the prefix key to something else
 (set-prefix-key (kbd "s-SPC"))
 (redirect-all-output (merge-pathnames "log" spook/init-directory))
@@ -80,7 +87,7 @@
 (define-key *top-map* (kbd "s-P") "fireword")
 (define-key *top-map* (kbd "s-d") "exec rofi -show run")
 (define-key *top-map* (kbd "s-D") "exec rofi -show drun")
-(define-key *top-map* (kbd "s-s") "exec flameshot gui")
+(define-key *top-map* (kbd "s-S") "exec flameshot gui")
 
 ;; familiar workspace/group navigation
 (loop :for i :from 1 :to 9
@@ -107,6 +114,11 @@
     m))
 (define-key *root-map* (kbd "q") '*spook-end-session-keymap*)
 
+(defparameter *spook-toggle-keymap*
+  (let ((m (make-sparse-keymap)))
+    (define-key m (kbd "f") "toggle-float-this")
+    m))
+(define-key *root-map* (kbd "t") '*spook-toggle-keymap*)
 
 ;; Modules from stumpwm-contrib
 ;; bring mouse cursor to current window
@@ -145,7 +157,40 @@
   (when-let ((hdmi (spook/hdmi-connected-p)))
     (run-shell-command (format nil "xrandr --output ~a --primary --auto --output eDP --off" hdmi) t))
 
-  (mode-line))
+  (loop :for head :in (screen-heads (current-screen))
+        :do (enable-mode-line (current-screen) head t)))
+
+;; scratch window
+(defun scratch-window ()
+  "Find scratch window if one exists."
+  (find-if
+   (lambda (w) (string= (window-name w) "scratchmacs"))
+   (all-windows)))
+
+(defcommand toggle-scratch () ()
+  "Toggle showing a scratch window."
+  (let* ((win (scratch-window))
+         (s-width (screen-width (current-screen)))
+         (s-height (screen-height (current-screen)))
+         (win-height (floor (/ s-height 2)))
+         (win-width (floor (/ s-width 1.8)))
+         (win-x (floor (/ s-height 2.4)))
+         (win-y (floor (/ s-width 4.4))))
+    (when (not win)
+      (run-shell-command "emacsclient -c --frame-parameters='(quote (name . \"scratchmacs\"))'")
+      (sleep 1)
+
+      (setq win (scratch-window))
+      (hide-window win)
+      (float-window win (window-group win))
+      (float-window-move-resize win :x win-x :y win-y :width win-width :height win-height))
+
+    (if (window-hidden-p win)
+        (progn (unhide-window win)
+               (focus-window win t))
+        (hide-window win))))
+
+(define-key *top-map* (kbd "s-s") "toggle-scratch")
 
 ;; group/window placement
 (when *initializing*
@@ -161,5 +206,5 @@
 (define-frame-preference "read" (nil t t :class "Evince"))
 (define-frame-preference "read" (nil t t :class "firefox"))
 (define-frame-preference "read" (nil t t :class "Chromium"))
-(define-frame-preference "edit" (nil t t :class "Emacs"))
+(define-frame-preference "edit" (nil t t :class "Emacs" :title-not "scratchmacs"))
 (define-frame-preference "term" (nil t t :class "kitty"))
