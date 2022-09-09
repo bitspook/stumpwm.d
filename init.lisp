@@ -46,11 +46,23 @@
         (unfloat-this)
         (float-this))))
 
+;; Control slynk server
+(defparameter is-slynk-server-running nil)
+(defparameter *slynk-server-port* 4005)
+(defcommand toggle-slynk-server () ()
+  "Start or stop a slynk server."
+  (if is-slynk-server-running
+      (progn (slynk:stop-server *slynk-server-port*)
+             (setq is-slynk-server-running nil)
+             (message "Stopped slynk-server on port ~a" *slynk-server-port*))
+      (progn (slynk:restart-server :port *slynk-server-port*)
+             (setq is-slynk-server-running t)
+             (message "Started slynk-server on port ~a" *slynk-server-port*))))
+(define-key *root-map* (kbd "C-s") "toggle-slynk-server")
+
 ;; change the prefix key to something else
 (set-prefix-key (kbd "s-SPC"))
 (redirect-all-output (merge-pathnames "log" spook/init-directory))
-
-(slynk:restart-server :dont-close t)
 
 (set-module-dir
  (pathname-as-directory (concat (format nil "~a" (user-homedir-pathname)) "Documents/vendor/stumpwm-contrib-modules")))
