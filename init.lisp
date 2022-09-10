@@ -62,7 +62,6 @@
 
 ;; change the prefix key to something else
 (set-prefix-key (kbd "s-SPC"))
-(redirect-all-output (merge-pathnames "log" spook/init-directory))
 
 (set-module-dir
  (pathname-as-directory (concat (format nil "~a" (user-homedir-pathname)) "Documents/vendor/stumpwm-contrib-modules")))
@@ -159,15 +158,24 @@
 (load-module "urgentwindows")
 
 ;; Monitor setup
-(defun spook/hdmi-connected-p ()
-  (string-trim '(#\Space #\Newline) (run-shell-command "xrandr | grep \"HDMI\" | cut -d \" \" -f 1" t)))
+(defun spook/connected-monitors ()
+  (split-string
+   (string-trim
+    '(#\Space #\Newline)
+    (run-shell-command
+     "xrandr --listmonitors | cut -d \" \" -f 6" t))))
+
+(defun spook/hdmi-connected-p (monitors)
+  (find-if (lambda (m) (> (ppcre:count-matches "hdmi" (string-downcase m)) 0))
+           monitors))
 
 (when *initializing*
-  (when (not (spook/hdmi-connected-p))
-    (run-shell-command "xrandr --output eDP --mode 1920x1080"))
-
-  (when-let ((hdmi (spook/hdmi-connected-p)))
-    (run-shell-command (format nil "xrandr --output ~a --primary --auto --output eDP --off" hdmi) t))
+  (let* ((monitors (spook/connected-monitors))
+         (edp (first monitors))
+         (hdmi (spook/hdmi-connected-p monitors)))
+    (if hdmi
+        (run-shell-command (format nil "xrandr --output ~a --primary --auto --output ~a --off" hdmi edp) t)
+        (run-shell-command (format nil "xrandr --output ~a --mode 1920x1080" edp))))
 
   (loop :for head :in (screen-heads (current-screen))
         :do (enable-mode-line (current-screen) head t)))
