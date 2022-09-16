@@ -90,9 +90,13 @@
 
 ;; window movement
 (define-key *top-map* (kbd "s-k") "move-focus up")
+(define-key *top-map* (kbd "s-K") "move-window up")
 (define-key *top-map* (kbd "s-j") "move-focus down")
+(define-key *top-map* (kbd "s-J") "move-window down")
 (define-key *top-map* (kbd "s-l") "move-focus right")
+(define-key *top-map* (kbd "s-L") "move-window right")
 (define-key *top-map* (kbd "s-h") "move-focus left")
+(define-key *top-map* (kbd "s-H") "move-window left")
 (define-key *top-map* (kbd "s-f") "fullscreen")
 (define-key *top-map* (kbd "s-p") "exec rofi-pass")
 (define-key *top-map* (kbd "s-P") "fireword")
@@ -102,7 +106,8 @@
 
 ;; familiar workspace/group navigation
 (loop :for i :from 1 :to 9
-      :do (define-key *top-map* (kbd (format nil "s-~a" i)) (format nil "gselect ~a" i)))
+      :do (define-key *top-map* (kbd (format nil "s-~a" i)) (format nil "gselect ~a" i))
+          (define-key *top-map* (kbd (format nil "C-s-~a" i)) (format nil "gmove ~a" i)))
 
 (define-key *root-map* (kbd "'") "windowlist")
 (define-key *root-map* (kbd "C-k") "delete-window-and-frame")
