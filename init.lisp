@@ -98,10 +98,10 @@
 (define-key *top-map* (kbd "s-h") "move-focus left")
 (define-key *top-map* (kbd "s-H") "move-window left")
 (define-key *top-map* (kbd "s-f") "fullscreen")
-(define-key *top-map* (kbd "s-p") "exec rofi-pass")
+(define-key *top-map* (kbd "s-p") "exec rofi-pass --last-used")
 (define-key *top-map* (kbd "s-P") "fireword")
-(define-key *top-map* (kbd "s-d") "exec rofi -show run")
-(define-key *top-map* (kbd "s-D") "exec rofi -show drun")
+(define-key *top-map* (kbd "s-d") "exec rofi -theme ~/.config/rofi/theme.rasi -show run")
+(define-key *top-map* (kbd "s-D") "exec rofi -theme ~/.config/rofi/theme.rasi -show drun")
 (define-key *top-map* (kbd "s-S") "exec flameshot gui")
 
 ;; familiar workspace/group navigation
