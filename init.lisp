@@ -46,6 +46,9 @@
         (unfloat-this)
         (float-this))))
 
+(defcommand spook/move-window () ()
+  "Move window but if emacs is focused, let it decide what to do.")
+
 ;; Control slynk server
 (defparameter is-slynk-server-running nil)
 (defparameter *slynk-server-port* 4005)
@@ -103,6 +106,7 @@
 (define-key *top-map* (kbd "s-d") "exec rofi -theme ~/.config/rofi/theme.rasi -show run")
 (define-key *top-map* (kbd "s-D") "exec rofi -theme ~/.config/rofi/theme.rasi -show drun")
 (define-key *top-map* (kbd "s-S") "exec flameshot gui")
+(define-key *top-map* (kbd "s-s") "exec flameshot launcher")
 
 ;; familiar workspace/group navigation
 (loop :for i :from 1 :to 9
@@ -186,34 +190,41 @@
         :do (enable-mode-line (current-screen) head t)))
 
 ;; scratch window
+(defun scratch-p (win)
+  (string= (window-name win) "scratchmacs"))
+
 (defun scratch-window ()
   "Find scratch window if one exists."
   (find-if
    (lambda (w) (string= (window-name w) "scratchmacs"))
    (all-windows)))
 
-(defcommand toggle-scratch () ()
-  "Toggle showing a scratch window."
-  (let* ((win (scratch-window))
-         (s-width (screen-width (current-screen)))
-         (s-height (screen-height (current-screen)))
-         (win-height (floor (/ s-height 2)))
-         (win-width (floor (/ s-width 1.8)))
-         (win-x (floor (/ s-height 2.4)))
-         (win-y (floor (/ s-width 4.4))))
-    (when (not win)
-      (run-shell-command "emacsclient -c --frame-parameters='(quote (name . \"scratchmacs\"))'")
-      (sleep 1)
-
-      (setq win (scratch-window))
+(defun handle-new-scratch-window (win)
+  (when (scratch-p win)
+    (let* ((s-width (screen-width (current-screen)))
+           (s-height (screen-height (current-screen)))
+           (win-height (floor (/ s-height 2)))
+           (win-width (floor (/ s-width 1.8)))
+           (win-x (floor (/ s-height 2.4)))
+           (win-y (floor (/ s-width 4.4))))
       (hide-window win)
       (float-window win (window-group win))
-      (float-window-move-resize win :x win-x :y win-y :width win-width :height win-height))
+      (float-window-move-resize win :x win-x :y win-y :width win-width :height win-height)
+      (focus-window win))))
+(add-hook *new-window-hook* #'handle-new-scratch-window)
 
-    (if (window-hidden-p win)
-        (progn (unhide-window win)
-               (focus-window win t))
-        (hide-window win))))
+(defcommand toggle-scratch () ()
+  "Toggle showing a scratch window."
+  (let ((win (scratch-window)))
+    (if (not win)
+        (run-shell-command "emacsclient -c --frame-parameters='(quote (name . \"scratchmacs\"))'")
+        (progn
+          (if (not (eq (window-group win) (current-group)))
+              (move-window-to-group win (current-group)))
+          (if (window-hidden-p win)
+              (progn (unhide-window win)
+                     (focus-window win t))
+              (hide-window win))))))
 
 (define-key *top-map* (kbd "s-s") "toggle-scratch")
 
