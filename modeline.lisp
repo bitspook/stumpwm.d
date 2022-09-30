@@ -5,7 +5,8 @@
       *mode-line-background-color* spook-nord1
       *mode-line-foreground-color* spook-nord5
       *mode-line-border-width* 0
-      *mode-line-border-color* spook-nord1)
+      *mode-line-border-color* spook-nord1
+      *hidden-window-color* (format nil "^(:fg \"~a\")" spook-nord15))
 
 (load-module "battery-portable")
 (load-module "mem")
@@ -17,7 +18,7 @@
 (setf *screen-mode-line-format*
       (list
        "[%g] | "
-       "%W"
+       "%v"
        "^>"
        '(:eval (format nil "^[^(:fg \"~a\")^(:bg \"~a\") %M ^]" spook-nord8 spook-nord1))
        '(:eval (format nil "^[^(:fg \"~a\")^(:bg \"~a\") BAT: %B ^]" spook-nord8 spook-nord1))
