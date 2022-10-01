@@ -6,11 +6,14 @@
   (when (probe-file quicklisp-init)
     (load quicklisp-init)))
 
-(ql:quickload '(:slynk :xkeyboard :cl-ppcre))
+(ql:quickload '(:slynk :xkeyboard :cl-ppcre :clx-truetype))
 
 (defvar spook/init-directory
   (directory-namestring
    (truename (merge-pathnames (user-homedir-pathname) ".stumpwm.d"))))
+
+(set-module-dir
+ (pathname-as-directory (concat (format nil "~a" (user-homedir-pathname)) "Documents/vendor/stumpwm-contrib-modules")))
 
 (defvar spook/term-cmd "kitty -o background_opacity=0.7")
 (defvar spook/fireword-bin "~/Documents/work/fireword/fireword")
@@ -66,9 +69,6 @@
 ;; change the prefix key to something else
 (set-prefix-key (kbd "s-SPC"))
 
-(set-module-dir
- (pathname-as-directory (concat (format nil "~a" (user-homedir-pathname)) "Documents/vendor/stumpwm-contrib-modules")))
-
 ;; visual
 (set-normal-gravity :bottom-right)
 (setf *message-window-gravity* :center
@@ -101,7 +101,7 @@
 (define-key *top-map* (kbd "s-h") "move-focus left")
 (define-key *top-map* (kbd "s-H") "move-window left")
 (define-key *top-map* (kbd "s-f") "fullscreen")
-(define-key *top-map* (kbd "s-p") "exec rofi-pass --last-used")
+(define-key *top-map* (kbd "s-p") "exec rofi-pass")
 (define-key *top-map* (kbd "s-P") "fireword")
 (define-key *top-map* (kbd "s-d") "exec rofi -theme ~/.config/rofi/theme.rasi -show run")
 (define-key *top-map* (kbd "s-D") "exec rofi -theme ~/.config/rofi/theme.rasi -show drun")
@@ -151,17 +151,18 @@
 (define-key *root-map* (kbd "\"") "global-windowlist")
 
 ;; fonts
-(ql:quickload :clx-truetype)
 (load-module "ttf-fonts")
 ;; NixOS specific fix to get the fonts
 (setq clx-truetype::*font-dirs* (split-string (getenv "FONT_DIRS") ":"))
 (xft:cache-fonts)
 
-(set-font (list (make-instance 'xft:font
-                               :family "Noto Sans Mono"
-                               :subfamily "Regular"
-                               :size 11
-                               :antialias t)))
+(set-font
+ (list (make-instance
+        'xft:font
+        :family "Noto Sans Mono"
+        :subfamily "Regular"
+        :size 11
+        :antialias t)))
 
 ;; get urgent windows
 (load-module "urgentwindows")
@@ -207,7 +208,7 @@
            (win-width (floor (/ s-width 1.8)))
            (win-x (floor (/ s-height 2.4)))
            (win-y (floor (/ s-width 4.4))))
-      (hide-window win)
+
       (float-window win (window-group win))
       (float-window-move-resize win :x win-x :y win-y :width win-width :height win-height)
       (focus-window win))))
